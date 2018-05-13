@@ -19,30 +19,42 @@ const createLeadObject = (headers, leadData) => {
 
 /* GET home page. */
 router.get('/:sheetid/:email', function(req, res, next) {
-	authorize().then(auth => {
-		const sheetid = req.params.sheetid;
-		const email = req.params.email;
-		const sheets = google.google.sheets({ version: 'v4', auth });
-		sheets.spreadsheets.values.get(
-			{
-				spreadsheetId: sheetid,
-				range: 'API!A1:Z1000',
-			},
-			(err, data) => {
-				if (err)
-					return res.send({
-						message: 'Something went wrong',
-						error: err,
+	authorize().then(
+		auth => {
+			const sheetid = req.params.sheetid;
+			const email = req.params.email;
+			const sheets = google.google.sheets({ version: 'v4', auth });
+			sheets.spreadsheets.values.get(
+				{
+					spreadsheetId: sheetid,
+					range: 'API!A1:Z1000',
+				},
+				(err, data) => {
+					if (err)
+						return res.send({
+							message: 'Something went wrong',
+							error: err,
+						});
+					const headerRow = data.data.values[0];
+					const personRow = data.data.values.filter(row => {
+						return row[0] === email;
 					});
-				const headerRow = data.data.values[0];
-				const personRow = data.data.values.filter(row => {
-					return row[0] === email;
+					const personObject = createLeadObject(
+						headerRow,
+						personRow[0]
+					);
+					res.send(personObject);
+				}
+			);
+		},
+		err => {
+			if (err)
+				return res.send({
+					message: 'Something went wrong',
+					error: err,
 				});
-				const personObject = createLeadObject(headerRow, personRow[0]);
-				res.send(personObject);
-			}
-		);
-	});
+		}
+	);
 });
 
 module.exports = router;

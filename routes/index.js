@@ -29,7 +29,11 @@ router.get('/:sheetid/:email', function(req, res, next) {
 				range: 'API!A1:Z1000',
 			},
 			(err, data) => {
-				if (err) return res.send('Something went wrong', err);
+				if (err)
+					return res.send({
+						message: 'Something went wrong',
+						error: err,
+					});
 				const headerRow = data.data.values[0];
 				const personRow = data.data.values.filter(row => {
 					return row[0] === email;
